@@ -1,0 +1,24 @@
+W zadaniu, które za chwilę wykonasz, w każdej próbie zostanie najpierw wyświetlona wskazówka - napis “LITERA” lub “CYFRA”, wyznaczająca dalszy przebieg zadania. Następnie na ekranie pojawi się litera i obok niej cyfra (np. A 3). Twoim celem jest określenie, w zależności od poprzedniego komunikatu, czy dana cyfra jest parzysta albo czy dana litera jest samogłoską.
+Czyli jeżeli wskazówka wyświetla napis “LITERA”, odpowiadasz na pytanie: “Czy dana litera jest samogłoską, czy spółgłoską?”, a jeżeli wskazówka wyświetla napis “CYFRA” odpowiadasz na pytanie: “Czy dana cyfra jest parzysta, czy nieparzysta?”.
+
+
+
+Odpowiedzi udzielasz poprzez wciśnięcie danego klawisza na klawiaturze:
+
+ “z” dla samogłosek i cyfr nieparzystych
+
+“m” dla spółgłosek i cyfr parzystych.
+
+
+
+Przykład:
+
+Jeśli pierwszy komunikat wyświetla napis “CYFRA” a następnie na ekranie pojawiają się znaki “B 3” -> wciskasz klawisz   “z”.
+
+
+
+Postaraj się odpowiadać poprawnie i jak najszybciej, gdyż mierzony będzie czas Twojej reakcji oraz poprawność odpowiedzi.
+
+
+
+Naciśnij spację aby przejść dalej.

@@ -1,0 +1,5 @@
+
+Klawisz “m”: spółgłoska oraz cyfra parzysta
+
+Klawisz “z”: samogłoska oraz cyfra nieparzysta
+
