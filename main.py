@@ -5,10 +5,7 @@ import yaml
 import random
 import atexit
 import codecs
-#eloelo
 
-
-##
 from typing import List, Dict
 from os.path import join
 from psychopy import visual, event, logging, gui, core
@@ -150,6 +147,7 @@ def run_trial(win, conf, clock, target_stim, instruction_stim, fix_cross,previou
         else:
             instruction = previous_instruction
     switch_status = "switch" if instruction != previous_instruction else "no-switch"
+    # brakuje limitu tych samych powtórzeń
 
     litera = random.choice(conf['STIM_LETTERS'])
     cyfra = random.choice(conf['STIM_NUMBERS'])
@@ -176,19 +174,20 @@ def run_trial(win, conf, clock, target_stim, instruction_stim, fix_cross,previou
             break
         target_stim.draw()
         win.flip()
-    reaction = None
-    if not reaction:  # no reaction during stim time, allow to answer after that
+    # reaction = None   O co tu chodzi????
+    # TO nas raczej nie dotyczy:
+    #if not reaction:  # no reaction during stim time, allow to answer after that
         # question_frame.draw()
         # question_label.draw()
-        win.flip()
-        reaction = event.waitKeys(keyList=list(conf['REACTION_KEYS']), maxWait=conf['REACTION_TIME'], timeStamped=clock)
+        #win.flip()
+        #reaction = event.waitKeys(keyList=list(conf['REACTION_KEYS']), maxWait=conf['REACTION_TIME'], timeStamped=clock)
     # === Trial ended, prepare data for send  ===
     if reaction:
-        key_pressed, rt = reaction[0]
+        key_pressed, rt = reaction[0] # 0 to krotka: (pierwszy przycisk który został wciśnięty, czas wciśnięcia)
     else:  # timeout
         key_pressed = 'no_key'
-        rt = -1.0
-    correct_key = None
+        rt = -1.0 # co z tym czy powinno w pliku wynikowym byc jako timeout?
+    correct_key = None # wprowadzenie zmiennej (domyślnie żadna zmienna)
     if instruction == "LITERA":
         correct_key = 'z' if litera in ['A', 'E', 'I', 'U'] else 'm'
     elif instruction == "CYFRA":
@@ -207,7 +206,7 @@ PART_ID = ''
 SCREEN_RES = []
 
 # === Dialog popup ===
-info: Dict = {'ID': '', 'Sex': ['M', "F"], 'Age': '20'}
+info: Dict = {'ID': '', 'Sex': ['M', "F"], 'Age': ''}
 dict_dlg = gui.DlgFromDict(dictionary=info, title='Experiment title, fill by your name!')
 if not dict_dlg.OK:
     abort_with_error('Info dialog terminated.')
@@ -218,7 +217,8 @@ conf: Dict = yaml.load(open('config.yaml', encoding='utf-8'), Loader=yaml.SafeLo
 frame_rate: int = conf['FRAME_RATE']
 SCREEN_RES: List[int] = conf['SCREEN_RES']
 # === Scene init ===
-win = visual.Window(SCREEN_RES, monitor='testMonitor', units='pix', color=conf['BACKGROUND_COLOR'])
+# zmiana: wielkość okna
+win = visual.Window(SCREEN_RES,  monitor='testMonitor', units='pix', color=conf['BACKGROUND_COLOR'])
 event.Mouse(visible=False, newPos=None, win=win)  # Make mouse invisible
 
 PART_ID = info['ID'] + info['Sex'] + info['Age']
@@ -227,11 +227,9 @@ logging.info('FRAME RATE: {}'.format(frame_rate))
 logging.info('SCREEN RES: {}'.format(SCREEN_RES))
 
 # === Prepare stimulus here ===
-#
-# Examples:
-# que = visual.Circle(win, radius=conf['QUE_RADIUS'], fillColor=conf['QUE_COLOR'], lineColor=conf['QUE_COLOR'])
-stim = visual.TextStim(win, text="Press any arrow.", height=conf['STIM_SIZE'], color=conf['STIM_COLOR'])
-# mask = visual.ImageStim(win, image='mask4.png', size=(conf['STIM_SIZE'], conf['STIM_SIZE']))
+# Stworzenia bodźców
+# uwaga brakuje maski i przypomnienia!
+
 fix_cross = visual.TextStim(win, text='+', height=100, color=conf['FIX_CROSS_COLOR'])
 instruction_stim = visual.TextStim(win, text="", height=conf['STIM_SIZE'], color=conf['STIM_COLOR'])
 target_stim = visual.TextStim(win, text="", height=conf['STIM_SIZE'], color=conf['STIM_COLOR'])
@@ -240,8 +238,9 @@ target_stim = visual.TextStim(win, text="", height=conf['STIM_SIZE'], color=conf
 # show_info(win, join('.', 'messages', 'before_training.txt'))
 show_info(win, join('.', 'messages', 'instrukcja.txt'))
 for trial_no in range(conf['TRAINING_TRIALS']):
-    previous_instruction = "LITERA"
-    key_pressed, rt, switch_status, correctness, instruction = run_trial(win, conf, clock, target_stim,instruction_stim, fix_cross, previous_instruction)
+
+    key_pressed, rt, switch_status, correctness, instruction = run_trial(win, conf, clock, target_stim,instruction_stim, fix_cross)
+
     corr = correctness
     RESULTS.append([PART_ID, 'training',trial_no, instruction , corr, switch_status, rt])
 
