@@ -8,6 +8,8 @@ import codecs
 
 from typing import List, Dict
 from os.path import join
+
+from numpy.f2py.crackfortran import previous_context
 from psychopy import visual, event, logging, gui, core
 #from psychopy.demos.coder.iohub.eyetracking.validation import target_stim
 
@@ -122,7 +124,7 @@ def abort_with_error(err: str) -> None:
     raise Exception(err)
 
 
-def run_trial(win, conf, clock, target_stim, instruction_stim, fix_cross,previous_instruction=None):
+def run_trial(win, conf, clock, target_stim, instruction_stim, fix_cross,previous_instruction):
     """
     Prepare and present single trial of procedure.
     Input (params) should consist all data need for presenting stimuli.
@@ -146,7 +148,7 @@ def run_trial(win, conf, clock, target_stim, instruction_stim, fix_cross,previou
             instruction = "CYFRA" if previous_instruction == "LITERA" else "LITERA"
         else:
             instruction = previous_instruction
-    switch_status = "switch" if instruction != previous_instruction else "no-switch"
+    switch_status = "no-switch" if instruction == previous_instruction or instruction == None else "switch"
     # brakuje limitu tych samych powtórzeń
 
     litera = random.choice(conf['STIM_LETTERS'])
@@ -174,7 +176,7 @@ def run_trial(win, conf, clock, target_stim, instruction_stim, fix_cross,previou
             break
         target_stim.draw()
         win.flip()
-    # reaction = None   O co tu chodzi????
+    #reaction = None
     # TO nas raczej nie dotyczy:
     #if not reaction:  # no reaction during stim time, allow to answer after that
         # question_frame.draw()
@@ -237,10 +239,10 @@ target_stim = visual.TextStim(win, text="", height=conf['STIM_SIZE'], color=conf
 # show_info(win, join('.', 'messages', 'hello.txt'))
 # show_info(win, join('.', 'messages', 'before_training.txt'))
 show_info(win, join('.', 'messages', 'instrukcja.txt'))
+previous_instruction = None
 for trial_no in range(conf['TRAINING_TRIALS']):
-
-    key_pressed, rt, switch_status, correctness, instruction = run_trial(win, conf, clock, target_stim,instruction_stim, fix_cross)
-
+    key_pressed, rt, switch_status, correctness, instruction = run_trial(win, conf, clock, target_stim,instruction_stim, fix_cross, previous_instruction)
+    previous_instruction=instruction
     corr = correctness
     RESULTS.append([PART_ID, 'training',trial_no, instruction , corr, switch_status, rt])
 
