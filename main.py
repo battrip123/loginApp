@@ -119,7 +119,8 @@ def abort_with_error(err: str) -> None:
     raise Exception(err)
 
 
-def run_trial(win, conf, clock, target_stim, instruction_stim, fix_cross, previous_instruction):
+
+def run_trial(win, conf, clock, target_stim, instruction_stim, fix_cross, previous_instruction, no_switch_count):
     """
     Prepare and present single trial of procedure.
     Input (params) should consist all data need for presenting stimuli.
@@ -138,13 +139,20 @@ def run_trial(win, conf, clock, target_stim, instruction_stim, fix_cross, previo
     # stim.text = random.choice(conf['STIM_LETTERS'])
     if previous_instruction is None:
         instruction = random.choice(conf['STIM_CUE'])
+        no_switch_count = 0
     else:
-        if random.random() < 0.25:
+        if no_switch_count >= 5:
             instruction = "CYFRA" if previous_instruction == "LITERA" else "LITERA"
+            no_switch_count = 0
         else:
-            instruction = previous_instruction
+            if random.random() < 0.25:
+                instruction = "CYFRA" if previous_instruction == "LITERA" else "LITERA"
+                no_switch_count = 0
+            else:
+                instruction = previous_instruction
+                no_switch_count += 1
     switch_status = "no-switch" if instruction == previous_instruction or instruction == None else "switch"
-    # brakuje limitu tych samych powtórzeń
+
 
     litera = random.choice(conf['STIM_LETTERS'])
     cyfra = random.choice(conf['STIM_NUMBERS'])
@@ -171,14 +179,7 @@ def run_trial(win, conf, clock, target_stim, instruction_stim, fix_cross, previo
             break
         target_stim.draw()
         win.flip()
-    # reaction = None
-    # TO nas raczej nie dotyczy:
-    # if not reaction:  # no reaction during stim time, allow to answer after that
-    # question_frame.draw()
-    # question_label.draw()
-    # win.flip()
-    # reaction = event.waitKeys(keyList=list(conf['REACTION_KEYS']), maxWait=conf['REACTION_TIME'], timeStamped=clock)
-    # === Trial ended, prepare data for send  ===
+
     if reaction:
         key_pressed, rt = reaction[0]  # 0 to krotka: (pierwszy przycisk który został wciśnięty, czas wciśnięcia)
     else:  # timeout
@@ -234,11 +235,14 @@ target_stim = visual.TextStim(win, text="", height=conf['STIM_SIZE'], color=conf
 # show_info(win, join('.', 'messages', 'hello.txt'))
 # show_info(win, join('.', 'messages', 'before_training.txt'))
 show_info(win, join('.', 'messages', 'instrukcja.txt'))
+show_info(win, join('.', 'messages', 'komunikattrening.txt'))
+show_info(win, join('.', 'messages', 'start.txt'))
 previous_instruction = None
+no_switch_count = 0
 for trial_no in range(conf['TRAINING_TRIALS']):
     key_pressed, rt, switch_status, correctness, instruction = run_trial(win, conf, clock, target_stim,
                                                                          instruction_stim, fix_cross,
-                                                                         previous_instruction)
+                                                                         previous_instruction, no_switch_count)
     previous_instruction = instruction
     corr = correctness
     RESULTS.append([PART_ID, 'training', trial_no, instruction, corr, switch_status, rt])
@@ -252,12 +256,13 @@ for trial_no in range(conf['TRAINING_TRIALS']):
     win.flip()
 
 # === Experiment ===
-show_info(win, join('.', 'messages', 'before_experiment.txt'))
+show_info(win, join('.', 'messages', 'komunikateksperyment.txt'))
+show_info(win, join('.', 'messages', 'start.txt'))
 trial_no = 0
 for block_no in range(conf['NO_BLOCKS']):
     for _ in range(conf['TRIALS_IN_BLOCK']):
         key_pressed, rt, switch_status, corr, instruction = run_trial(win, conf, clock, target_stim, instruction_stim,
-                                                                      fix_cross, previous_instruction)
+                                                                      fix_cross, previous_instruction, no_switch_count)
         previous_instruction = "LITERA"
         RESULTS.append([PART_ID, block_no, trial_no, instruction, corr, switch_status, rt])
         trial_no += 1
