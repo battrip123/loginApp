@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: latin-1 -*-
+
 import csv #do ładowania plików csv
 import yaml #do ładowania plików yaml
 import random #do losowania liczb (przy numerze badanego)
@@ -11,9 +10,6 @@ from os.path import join
 
 from numpy.f2py.crackfortran import previous_context
 from psychopy import visual, event, logging, gui, core
-
-
-# from psychopy.demos.coder.iohub.eyetracking.validation import target_stim
 
 
 @atexit.register
@@ -66,7 +62,7 @@ def read_text_from_file(file_name: str, insert: str = '') -> str:
     msg = list()
     with codecs.open(file_name, encoding='utf-8', mode='r') as data_file:
         for line in data_file:
-            if not line.startswith('#'):  # if not commented line
+            if not line.startswith('#'): 
                 if line.startswith('<--insert-->'):
                     if insert:
                         msg.append(insert)
@@ -130,13 +126,7 @@ def run_trial(win, conf, clock, target_stim, instruction_stim, fix_cross, previo
         All behavioral data (reaction time, answer, etc. should be returned from this function).
     """
 
-    # === Prepare trial-related stimulus ===
-    # Randomise if needed
-    #
-    # Examples:
-    #
-    # que_pos = random.choice([-conf['STIM_SHIFT'], conf['STIM_SHIFT']])
-    # stim.text = random.choice(conf['STIM_LETTERS'])
+  
     if previous_instruction is None:
         instruction = random.choice(conf['STIM_CUE'])
         no_switch_count = 0
@@ -156,7 +146,6 @@ def run_trial(win, conf, clock, target_stim, instruction_stim, fix_cross, previo
 
     litera = random.choice(conf['STIM_LETTERS'])
     cyfra = random.choice(conf['STIM_NUMBERS'])
-    # === Start pre-trial  stuff (Fixation cross etc.)===
     instruction_stim.text = instruction
     for _ in range(conf['STIM_TIME']):
         instruction_stim.draw()
@@ -232,8 +221,6 @@ fix_cross = visual.TextStim(win, text='+', height=100, color=conf['FIX_CROSS_COL
 instruction_stim = visual.TextStim(win, text="", height=conf['STIM_SIZE'], color=conf['STIM_COLOR'])
 target_stim = visual.TextStim(win, text="", height=conf['STIM_SIZE'], color=conf['STIM_COLOR'])
 # === Training ===
-# show_info(win, join('.', 'messages', 'hello.txt'))
-# show_info(win, join('.', 'messages', 'before_training.txt'))
 show_info(win, join('.', 'messages', 'instrukcja.txt'))
 show_info(win, join('.', 'messages', 'komunikattrening.txt'))
 show_info(win, join('.', 'messages', 'start.txt'))
@@ -247,7 +234,7 @@ for trial_no in range(conf['TRAINING_TRIALS']):
     corr = correctness
     RESULTS.append([PART_ID, 'training', trial_no, instruction, corr, switch_status, rt])
 
-    # it's a good idea to show feedback during training trials
+  
     feedb = "Poprawnie" if corr else "Niepoprawnie"
     feedb = visual.TextStim(win, text=feedb, height=50, color=conf['FIX_CROSS_COLOR'])
     feedb.draw()
