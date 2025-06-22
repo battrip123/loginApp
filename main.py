@@ -1,28 +1,24 @@
 #!/usr/bin/env python
 # -*- coding: latin-1 -*-
-import csv
-import yaml
-import random
-import atexit
-import codecs
+import csv #do ładowania plików csv
+import yaml #do ładowania plików yaml
+import random #do losowania liczb (przy numerze badanego)
+import atexit #do pobierania danych z procedury do pliku
+import codecs #do pobrania polskich znaków
 
 from typing import List, Dict
 from os.path import join
 
 from numpy.f2py.crackfortran import previous_context
 from psychopy import visual, event, logging, gui, core
-#from psychopy.demos.coder.iohub.eyetracking.validation import target_stim
+
+
+# from psychopy.demos.coder.iohub.eyetracking.validation import target_stim
 
 
 @atexit.register
 def save_beh_results() -> None:
-    """
-    Save results of experiment. Decorated with @atexit in order to make sure, that intermediate
-    results will be saved even if interpreter will break.
-
-    Returns:
-        Nothing.
-    """
+    #dzięki atexit wyniki badanego będą zawsze zapisane, nawet jak coś przerwie działanie
 
     file_name = PART_ID + '_' + str(random.choice(range(100, 1000))) + '_beh.csv'
     with open(join('results', file_name), 'w', encoding='utf-8') as beh_file:
@@ -54,7 +50,6 @@ def show_image(win: visual.window, file_name: str, size: List[int], key: str = '
 
 
 def read_text_from_file(file_name: str, insert: str = '') -> str:
-    
     """
     Method that read message from text file, and optionally add some
     dynamically generated info.
@@ -124,7 +119,7 @@ def abort_with_error(err: str) -> None:
     raise Exception(err)
 
 
-def run_trial(win, conf, clock, target_stim, instruction_stim, fix_cross,previous_instruction):
+def run_trial(win, conf, clock, target_stim, instruction_stim, fix_cross, previous_instruction):
     """
     Prepare and present single trial of procedure.
     Input (params) should consist all data need for presenting stimuli.
@@ -176,20 +171,20 @@ def run_trial(win, conf, clock, target_stim, instruction_stim, fix_cross,previou
             break
         target_stim.draw()
         win.flip()
-    #reaction = None
+    # reaction = None
     # TO nas raczej nie dotyczy:
-    #if not reaction:  # no reaction during stim time, allow to answer after that
-        # question_frame.draw()
-        # question_label.draw()
-        #win.flip()
-        #reaction = event.waitKeys(keyList=list(conf['REACTION_KEYS']), maxWait=conf['REACTION_TIME'], timeStamped=clock)
+    # if not reaction:  # no reaction during stim time, allow to answer after that
+    # question_frame.draw()
+    # question_label.draw()
+    # win.flip()
+    # reaction = event.waitKeys(keyList=list(conf['REACTION_KEYS']), maxWait=conf['REACTION_TIME'], timeStamped=clock)
     # === Trial ended, prepare data for send  ===
     if reaction:
-        key_pressed, rt = reaction[0] # 0 to krotka: (pierwszy przycisk który został wciśnięty, czas wciśnięcia)
+        key_pressed, rt = reaction[0]  # 0 to krotka: (pierwszy przycisk który został wciśnięty, czas wciśnięcia)
     else:  # timeout
         key_pressed = 'no_key'
-        rt = -1.0 # co z tym czy powinno w pliku wynikowym byc jako timeout?
-    correct_key = None # wprowadzenie zmiennej (domyślnie żadna zmienna)
+        rt = -1.0  # co z tym czy powinno w pliku wynikowym byc jako timeout?
+    correct_key = None  # wprowadzenie zmiennej (domyślnie żadna zmienna)
     if instruction == "LITERA":
         correct_key = 'z' if litera in ['A', 'E', 'I', 'U'] else 'm'
     elif instruction == "CYFRA":
@@ -203,7 +198,7 @@ def run_trial(win, conf, clock, target_stim, instruction_stim, fix_cross,previou
 # GLOBAL VARIABLES
 
 RESULTS = list()  # list in which data will be collected
-RESULTS.append(['PART_ID', 'Block', 'Trial', 'Instruction', 'Correctness', 'Switch_status','RT'])  # Results header
+RESULTS.append(['PART_ID', 'Block', 'Trial', 'Instruction', 'Correctness', 'Switch_status', 'RT'])  # Results header
 PART_ID = ''
 SCREEN_RES = []
 
@@ -220,7 +215,7 @@ frame_rate: int = conf['FRAME_RATE']
 SCREEN_RES: List[int] = conf['SCREEN_RES']
 # === Scene init ===
 # zmiana: wielkość okna
-win = visual.Window(SCREEN_RES,  monitor='testMonitor', units='pix', color=conf['BACKGROUND_COLOR'])
+win = visual.Window(SCREEN_RES, monitor='testMonitor', units='pix', color=conf['BACKGROUND_COLOR'])
 event.Mouse(visible=False, newPos=None, win=win)  # Make mouse invisible
 
 PART_ID = info['ID'] + info['Sex'] + info['Age']
@@ -241,10 +236,12 @@ target_stim = visual.TextStim(win, text="", height=conf['STIM_SIZE'], color=conf
 show_info(win, join('.', 'messages', 'instrukcja.txt'))
 previous_instruction = None
 for trial_no in range(conf['TRAINING_TRIALS']):
-    key_pressed, rt, switch_status, correctness, instruction = run_trial(win, conf, clock, target_stim,instruction_stim, fix_cross, previous_instruction)
-    previous_instruction=instruction
+    key_pressed, rt, switch_status, correctness, instruction = run_trial(win, conf, clock, target_stim,
+                                                                         instruction_stim, fix_cross,
+                                                                         previous_instruction)
+    previous_instruction = instruction
     corr = correctness
-    RESULTS.append([PART_ID, 'training',trial_no, instruction , corr, switch_status, rt])
+    RESULTS.append([PART_ID, 'training', trial_no, instruction, corr, switch_status, rt])
 
     # it's a good idea to show feedback during training trials
     feedb = "Poprawnie" if corr else "Niepoprawnie"
@@ -259,9 +256,10 @@ show_info(win, join('.', 'messages', 'before_experiment.txt'))
 trial_no = 0
 for block_no in range(conf['NO_BLOCKS']):
     for _ in range(conf['TRIALS_IN_BLOCK']):
-        key_pressed, rt, switch_status, corr, instruction = run_trial(win, conf, clock, target_stim,instruction_stim,fix_cross, previous_instruction)
+        key_pressed, rt, switch_status, corr, instruction = run_trial(win, conf, clock, target_stim, instruction_stim,
+                                                                      fix_cross, previous_instruction)
         previous_instruction = "LITERA"
-        RESULTS.append([PART_ID, block_no, trial_no, instruction , corr, switch_status, rt])
+        RESULTS.append([PART_ID, block_no, trial_no, instruction, corr, switch_status, rt])
         trial_no += 1
         win.flip()
         core.wait(1)
