@@ -1,26 +1,22 @@
-
-import csv #do ładowania plików csv
-import yaml #do ładowania plików yaml
-import random #do losowania liczb (przy numerze badanego)
-import atexit #do pobierania danych z procedury do pliku
-import codecs #do pobrania polskich znaków
-
-from typing import List, Dict
-from os.path import join
-
-from numpy.f2py.crackfortran import previous_context
+# -*- coding: utf-8 -*-
+import csv  # do ładowania plików csv
+import yaml  # do ładowania plików yaml
+import random  # do losowania liczb (przy numerze badanego)
+import atexit  # do pobierania danych z procedury do pliku
+import codecs  # do pobrania polskich znaków
+from typing import List, Dict # do używania listy i słownika
+from os.path import join # do łączenia plików i danych
 from psychopy import visual, event, logging, gui, core
 
 
-@atexit.register
-def save_beh_results() -> None:
-    #dzięki atexit wyniki badanego będą zawsze zapisane, nawet jak coś przerwie działanie
+@atexit.register # dzięki atexit ta funkcja zawsze zostanie wykonana - wyniki badanego będą zawsze zapisane, nawet jak coś przerwie działanie
+def save_beh_results() -> None: #ta funkcja tworzy w pliku results notatkę do zapisania danych badanego
+   file_name = PART_ID + '_' + str(random.choice(range(100, 1000))) + '_beh.csv'
+   with open(join('results', file_name), 'w', encoding='utf-8') as beh_file:
+       beh_writer = csv.writer(beh_file)
+       beh_writer.writerows(RESULTS)
+   logging.flush()
 
-    file_name = PART_ID + '_' + str(random.choice(range(100, 1000))) + '_beh.csv'
-    with open(join('results', file_name), 'w', encoding='utf-8') as beh_file:
-        beh_writer = csv.writer(beh_file)
-        beh_writer.writerows(RESULTS)
-    logging.flush()
 
 
 def show_image(win: visual.window, file_name: str, size: List[int], key: str = 'f7') -> None:
@@ -62,7 +58,7 @@ def read_text_from_file(file_name: str, insert: str = '') -> str:
     msg = list()
     with codecs.open(file_name, encoding='utf-8', mode='r') as data_file:
         for line in data_file:
-            if not line.startswith('#'): 
+            if not line.startswith('#'):
                 if line.startswith('<--insert-->'):
                     if insert:
                         msg.append(insert)
@@ -115,7 +111,6 @@ def abort_with_error(err: str) -> None:
     raise Exception(err)
 
 
-
 def run_trial(win, conf, clock, target_stim, instruction_stim, fix_cross, previous_instruction, no_switch_count):
     """
     Prepare and present single trial of procedure.
@@ -126,7 +121,6 @@ def run_trial(win, conf, clock, target_stim, instruction_stim, fix_cross, previo
         All behavioral data (reaction time, answer, etc. should be returned from this function).
     """
 
-  
     if previous_instruction is None:
         instruction = random.choice(conf['STIM_CUE'])
         no_switch_count = 0
@@ -142,7 +136,6 @@ def run_trial(win, conf, clock, target_stim, instruction_stim, fix_cross, previo
                 instruction = previous_instruction
                 no_switch_count += 1
     switch_status = "no-switch" if instruction == previous_instruction or instruction == None else "switch"
-
 
     litera = random.choice(conf['STIM_LETTERS'])
     cyfra = random.choice(conf['STIM_NUMBERS'])
@@ -234,9 +227,8 @@ for trial_no in range(conf['TRAINING_TRIALS']):
     corr = correctness
     RESULTS.append([PART_ID, 'training', trial_no, instruction, corr, switch_status, rt])
 
-  
     feedb = "Poprawnie" if corr else "Niepoprawnie"
-    feedb = visual.TextStim(win, text=feedb, height=50, color=conf['FIX_CROSS_COLOR'])
+    feedb = visual.TextStim(win, text=feedb, height=50, color=conf['CUE_COLOR'])
     feedb.draw()
     win.flip()
     core.wait(1)
