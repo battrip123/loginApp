@@ -10,10 +10,10 @@ from psychopy import visual, event, logging, gui, core # do ładowania potrzebny
 
 
 @atexit.register
-"""
-Dzięki atexit ta funkcja zawsze zostanie wykonana:
-wyniki badanego będą zawsze zapisane, nawet jak coś przerwie działanie kodu.
-"""
+
+# Dzięki atexit ta funkcja zawsze zostanie wykonana:
+# wyniki badanego będą z awsze zapisane, nawet jak coś przerwie działanie kodu.
+
 def save_beh_results() -> None:
    """
    Tworzenie w pliku results notatkę do zapisania danych badanego.
@@ -26,7 +26,7 @@ def save_beh_results() -> None:
 
 
 
-def show_image(win: visual.window, file_name: str, size: List[int], key: str = 'f7') -> None:
+def show_image(win: visual.Window, file_name: str, size: List[int], key: str = 'f7') -> None:
     """
     Pokazywanie tesktu w formie obrazu.
     Zakończenie procedury jeśli zostanie naciśnięty klawisz "f7".
@@ -95,7 +95,8 @@ def abort_with_error(err: str) -> None:
     Uruchamiane po wciśnięciu klawisza "f7".
     """
     logging.critical(err)
-    raise Exception(err)
+    win.close()  # zamyka okno
+    raise SystemExit(err)
 
 
 def run_trial(win, conf, clock, target_stim, instruction_stim, fix_cross, previous_instruction, no_switch_count):
@@ -128,9 +129,11 @@ def run_trial(win, conf, clock, target_stim, instruction_stim, fix_cross, previo
     cyfra = random.choice(conf['STIM_NUMBERS'])
     instruction_stim.text = instruction
     for _ in range(conf['STIM_TIME']):
+        check_exit() # sprawdzenie F7
         instruction_stim.draw()
         win.flip()
     for _ in range(conf['FIX_CROSS_TIME']):
+        check_exit() # sprawdzenie F7
         fix_cross.draw()
         win.flip()
 
@@ -143,10 +146,16 @@ def run_trial(win, conf, clock, target_stim, instruction_stim, fix_cross, previo
     win.callOnFlip(clock.reset)
 
     for _ in range(conf['REACTION_TIME']):  # present stimuli
+        check_exit() # sprawdzenie F7
         reaction = event.getKeys(keyList=list(conf['REACTION_KEYS']), timeStamped=clock)
         if reaction:  # break if any button was pressed
             break
         target_stim.draw()
+        reminder_stim.draw()
+        win.flip()
+
+    for _ in range(conf['MASK_TIME']): # maska po wyświetleniu bodźców
+        check_exit()
         win.flip()
 
     if reaction:
@@ -163,6 +172,7 @@ def run_trial(win, conf, clock, target_stim, instruction_stim, fix_cross, previo
     correctness = 1 if key_pressed == correct_key else 0
 
     return key_pressed, rt, switch_status, correctness, instruction  # return all data collected during trial
+
 
 
 # GLOBAL VARIABLES
@@ -195,11 +205,14 @@ logging.info('SCREEN RES: {}'.format(SCREEN_RES))
 
 # === Prepare stimulus here ===
 # Stworzenia bodźców
-# uwaga brakuje maski i przypomnienia!
 
 fix_cross = visual.TextStim(win, text='+', height=100, color=conf['FIX_CROSS_COLOR'])
 instruction_stim = visual.TextStim(win, text="", height=conf['STIM_SIZE'], color=conf['STIM_COLOR'])
 target_stim = visual.TextStim(win, text="", height=conf['STIM_SIZE'], color=conf['STIM_COLOR'])
+reminder_text = read_text_from_file(join('.', 'messages', 'przypomnienie.txt'))
+reminder_stim = visual.TextStim(win, text=reminder_text, pos=(0, -SCREEN_RES[1] // 2 + 100), height=20, color='black', wrapWidth=SCREEN_RES[0] - 100)
+
+
 # === Training ===
 show_info(win, join('.', 'messages', 'instrukcja.txt'))
 show_info(win, join('.', 'messages', 'komunikattrening.txt'))
@@ -234,7 +247,7 @@ for block_no in range(conf['NO_BLOCKS']):
         trial_no += 1
         win.flip()
         core.wait(1)
-    show_image(win, join('.', 'images', 'break.jpg'), size=SCREEN_RES)
+    show_image(win, join('.', 'images', 'przerwa.jpg'), size=SCREEN_RES)
 
 # === Cleaning time ===
 save_beh_results()
