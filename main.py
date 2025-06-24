@@ -6,11 +6,18 @@ import atexit  # do pobierania danych z procedury do pliku
 import codecs  # do pobrania polskich znaków
 from typing import List, Dict # do używania listy i słownika
 from os.path import join # do łączenia plików i danych
-from psychopy import visual, event, logging, gui, core
+from psychopy import visual, event, logging, gui, core # do ładowania potrzebnych rzeczy z psychopy
 
 
-@atexit.register # dzięki atexit ta funkcja zawsze zostanie wykonana - wyniki badanego będą zawsze zapisane, nawet jak coś przerwie działanie
-def save_beh_results() -> None: #ta funkcja tworzy w pliku results notatkę do zapisania danych badanego
+@atexit.register
+"""
+Dzięki atexit ta funkcja zawsze zostanie wykonana:
+wyniki badanego będą zawsze zapisane, nawet jak coś przerwie działanie kodu.
+"""
+def save_beh_results() -> None:
+   """
+   Tworzenie w pliku results notatkę do zapisania danych badanego.
+   """
    file_name = PART_ID + '_' + str(random.choice(range(100, 1000))) + '_beh.csv'
    with open(join('results', file_name), 'w', encoding='utf-8') as beh_file:
        beh_writer = csv.writer(beh_file)
@@ -21,15 +28,9 @@ def save_beh_results() -> None: #ta funkcja tworzy w pliku results notatkę do z
 
 def show_image(win: visual.window, file_name: str, size: List[int], key: str = 'f7') -> None:
     """
-    Show instructions in a form of an image.
-    Args:
-        win:
-        file_name: Img file.
-        size: Img size [width, height].
-        key: Key to terminate procedure.
-
-    Returns:
-        Nothing.
+    Pokazywanie tesktu w formie obrazu.
+    Zakończenie procedury jeśli zostanie naciśnięty klawisz "f7".
+    Przejście dalej jeśli zostanie naciśnięty "enter" lub "spacja".
     """
     image = visual.ImageStim(win=win, image=file_name, interpolate=True, size=size)
     image.draw()
@@ -43,14 +44,10 @@ def show_image(win: visual.window, file_name: str, size: List[int], key: str = '
 
 def read_text_from_file(file_name: str, insert: str = '') -> str:
     """
-    Method that read message from text file, and optionally add some
-    dynamically generated info.
-    Args:
-        file_name: Name of file to read
-        insert:
-
-    Returns:
-        String to display.
+    Zczytywanie danych z plików:
+    Tytuł pliku musi być ciągiem znaków;
+    Otwieranie i czytanie pliku, z pominięciem komentarzy;
+    Wstawianie tekstu z pliku.
     """
     if not isinstance(file_name, str):
         logging.error('Problem with file reading, filename must be a string')
@@ -69,10 +66,7 @@ def read_text_from_file(file_name: str, insert: str = '') -> str:
 
 def check_exit(key: str = 'f7') -> None:
     """
-    Check if exit button pressed.
-
-    Returns:
-        Nothing.
+    Zakończenie całej procedury przez wciśnięcie klawisza "f7".
     """
     stop = event.getKeys(keyList=[key])
     if stop:
@@ -81,20 +75,15 @@ def check_exit(key: str = 'f7') -> None:
 
 def show_info(win: visual.Window, file_name: str, insert: str = '') -> None:
     """
-    Clear way to show info message into screen.
-    Args:
-        win:
-        file_name:
-        insert:
-
-    Returns:
-        Nothing.
+    Wyświetlanie intstrukcji na ekranie.
+    Formatowanie instrukcji.
+    Wciśnięcie klawisza "spacja" lub "enter" w celu prześcia dalej.
     """
     msg = read_text_from_file(file_name, insert=insert)
     msg = visual.TextStim(win, color='black', text=msg, height=20, wrapWidth=1000)
     msg.draw()
     win.flip()
-    key = event.waitKeys(keyList=['f7', 'return', 'space', 'left', 'right'])
+    key = event.waitKeys(keyList=['f7', 'return', 'space'])
     if key == ['f7']:
         abort_with_error('Experiment finished by user on info screen! F7 pressed.')
     win.flip()
@@ -102,10 +91,8 @@ def show_info(win: visual.Window, file_name: str, insert: str = '') -> None:
 
 def abort_with_error(err: str) -> None:
     """
-    Call if an error occurred.
-
-    Returns:
-        Nothing.
+    Zakończenie całej procedury.
+    Uruchamiane po wciśnięciu klawisza "f7".
     """
     logging.critical(err)
     raise Exception(err)
