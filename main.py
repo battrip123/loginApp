@@ -99,7 +99,7 @@ def abort_with_error(err: str) -> None:
     raise SystemExit(err)
 
 
-def run_trial(win, conf, clock, target_stim, instruction_stim, fix_cross, previous_instruction, no_switch_count):
+def run_trial(win, conf, clock, target_stim, instruction_stim, fix_cross, reminder_stim, previous_instruction, no_switch_count, training=False):
     """
     Prepare and present single trial of procedure.
     Input (params) should consist all data need for presenting stimuli.
@@ -123,18 +123,23 @@ def run_trial(win, conf, clock, target_stim, instruction_stim, fix_cross, previo
             else:
                 instruction = previous_instruction
                 no_switch_count += 1
+
     switch_status = "no-switch" if instruction == previous_instruction or instruction == None else "switch"
 
     litera = random.choice(conf['STIM_LETTERS'])
     cyfra = random.choice(conf['STIM_NUMBERS'])
     instruction_stim.text = instruction
+
     for _ in range(conf['STIM_TIME']):
         check_exit() # sprawdzenie F7
         instruction_stim.draw()
+        reminder_stim.draw()
         win.flip()
+
     for _ in range(conf['FIX_CROSS_TIME']):
         check_exit() # sprawdzenie F7
         fix_cross.draw()
+        reminder_stim.draw()
         win.flip()
 
     # === Start trial ===
@@ -154,15 +159,18 @@ def run_trial(win, conf, clock, target_stim, instruction_stim, fix_cross, previo
         reminder_stim.draw()
         win.flip()
 
-    for _ in range(conf['MASK_TIME']): # maska po wyświetleniu bodźców
-        check_exit()
-        win.flip()
+    if not training: # maska w sesji eksperymentalnej pojawia się po pokazaniu bodźców, zaś w treningu po feedbacku
+        for _ in range(conf['MASK_TIME']):
+            check_exit()
+            reminder_stim.draw()
+            win.flip()
 
     if reaction:
         key_pressed, rt = reaction[0]  # 0 to krotka: (pierwszy przycisk który został wciśnięty, czas wciśnięcia)
     else:  # timeout
         key_pressed = 'no_key'
         rt = -1.0  # co z tym czy powinno w pliku wynikowym byc jako timeout?
+
     correct_key = None  # wprowadzenie zmiennej (domyślnie żadna zmienna)
     if instruction == "LITERA":
         correct_key = 'z' if litera in ['A', 'E', 'I', 'U'] else 'm'
@@ -213,6 +221,7 @@ reminder_text = read_text_from_file(join('.', 'messages', 'przypomnienie.txt'))
 reminder_stim = visual.TextStim(win, text=reminder_text, pos=(0, -SCREEN_RES[1] // 2 + 100), height=20, color='black', wrapWidth=SCREEN_RES[0] - 100)
 
 
+
 # === Training ===
 show_info(win, join('.', 'messages', 'instrukcja.txt'))
 show_info(win, join('.', 'messages', 'komunikattrening.txt'))
@@ -220,19 +229,22 @@ show_info(win, join('.', 'messages', 'start.txt'))
 previous_instruction = None
 no_switch_count = 0
 for trial_no in range(conf['TRAINING_TRIALS']):
-    key_pressed, rt, switch_status, correctness, instruction = run_trial(win, conf, clock, target_stim,
-                                                                         instruction_stim, fix_cross,
-                                                                         previous_instruction, no_switch_count)
+    key_pressed, rt, switch_status, correctness, instruction = run_trial(win, conf, clock, target_stim, instruction_stim, fix_cross, reminder_stim, previous_instruction, no_switch_count, training=True)
     previous_instruction = instruction
     corr = correctness
     RESULTS.append([PART_ID, 'training', trial_no, instruction, corr, switch_status, rt])
-
     feedb = "Poprawnie" if corr else "Niepoprawnie"
     feedb = visual.TextStim(win, text=feedb, height=50, color=conf['CUE_COLOR'])
-    feedb.draw()
-    win.flip()
-    core.wait(1)
-    win.flip()
+    for _ in range(int(frame_rate * 1)):  # 1 sekunda (zamiana core.wait(1) na pętlę)
+        check_exit()
+        feedb.draw()
+        reminder_stim.draw()
+        win.flip()
+
+    for _ in range(conf['MASK_TIME']): # maska jako pusty ekran pojawia się po feedbacku
+        check_exit()
+        reminder_stim.draw()
+        win.flip()
 
 # === Experiment ===
 show_info(win, join('.', 'messages', 'komunikateksperyment.txt'))
@@ -240,13 +252,14 @@ show_info(win, join('.', 'messages', 'start.txt'))
 trial_no = 0
 for block_no in range(conf['NO_BLOCKS']):
     for _ in range(conf['TRIALS_IN_BLOCK']):
-        key_pressed, rt, switch_status, corr, instruction = run_trial(win, conf, clock, target_stim, instruction_stim,
-                                                                      fix_cross, previous_instruction, no_switch_count)
+        key_pressed, rt, switch_status, corr, instruction = run_trial(win, conf, clock, target_stim, instruction_stim, fix_cross, reminder_stim, previous_instruction, no_switch_count, training=False)
         previous_instruction = "LITERA"
         RESULTS.append([PART_ID, block_no, trial_no, instruction, corr, switch_status, rt])
         trial_no += 1
-        win.flip()
-        core.wait(1)
+        for _ in range(int(frame_rate * 1)):  # przypomnienie jest widoczne przez 1s między próbami, aby znikało i nie rozpraszało badanego
+            check_exit()
+            reminder_stim.draw()
+            win.flip()
     show_image(win, join('.', 'images', 'przerwa.jpg'), size=SCREEN_RES)
 
 # === Cleaning time ===
