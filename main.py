@@ -159,7 +159,7 @@ def run_trial(win, conf, clock, target_stim, cue_stim, fix_cross, reminder_stim,
         reminder_stim.draw() # Wyświetlanie przypomnienia o przypisaniu klawiszy do bodźców.
         win.flip()
 
-    if not training: # Maska w sesji eksperymentalnej pojawia się po pokazaniu bodźców, zaś w treningu po feedbacku.
+    if not training: # Maska w sesji eksperymentalnej pojawia się po pokazaniu bodźców, zaś w treningu po informacji zwrotnej.
         for _ in range(conf['MASK_TIME']):
             check_exit() # Sprawdzenie, czy nie został wciśnięty klawisz F7.
             reminder_stim.draw()
@@ -183,7 +183,7 @@ def run_trial(win, conf, clock, target_stim, cue_stim, fix_cross, reminder_stim,
 
 
 
-# Ustawienia zmiennych globalnych:
+# USTAWIENIA ZMIENNYCH GLOBALNYCH:
 
 RESULTS = list()  # Lista, w której będą zbierane dane.
 RESULTS.append(['PART_ID', 'Block', 'Trial', 'Cue', 'Correctness', 'Switch_status', 'RT'])  # Nadanie tytułów nagłówkom kolumn.
@@ -198,59 +198,86 @@ if not dict_dlg.OK:
 
 clock = core.Clock() # Ustawienie zegara.
 
-conf: Dict = yaml.load(open('config.yaml', encoding='utf-8'), Loader=yaml.SafeLoader)
-frame_rate: int = conf['FRAME_RATE']
-SCREEN_RES: List[int] = conf['SCREEN_RES']
-# === Scene init ===
-# zmiana: wielkość okna
-win = visual.Window(SCREEN_RES, monitor='testMonitor', units='pix', color=conf['BACKGROUND_COLOR'])
-event.Mouse(visible=False, newPos=None, win=win)  # Make mouse invisible
+conf: Dict = yaml.load(open('config.yaml', encoding='utf-8'), Loader=yaml.SafeLoader) # Otworzenie pliku yaml z konfigruacją wszystkich zmiennych i zrobienie z niego słownika.
+frame_rate: int = conf['FRAME_RATE'] # Ustawienie liczby klatek na sekundę.
+SCREEN_RES: List[int] = conf['SCREEN_RES'] # Ustawienie rodzielczości ekranu.
+win = visual.Window(SCREEN_RES, monitor='testMonitor', units='pix', color=conf['BACKGROUND_COLOR']) # Ustawienie danych dotyczących ekranu i tła.
+event.Mouse(visible=False, newPos=None, win=win)  # Ukrycie kursora myszy w oknie ekspreymentu.
 
-PART_ID = info['ID'] + info['Sex'] + info['Age']
-logging.LogFile(join('results', f'{PART_ID}.log'), level=logging.INFO)  # errors logging
-logging.info('FRAME RATE: {}'.format(frame_rate))
-logging.info('SCREEN RES: {}'.format(SCREEN_RES))
+PART_ID = info['ID'] + info['Sex'] + info['Age'] # Stworzenie unikalnego ID badanego.
+logging.LogFile(join('results', f'{PART_ID}.log'), level=logging.INFO)  # Zapisywanie błędów z procedury.
+logging.info('FRAME RATE: {}'.format(frame_rate)) # Liczba klatek na sekundę.
+logging.info('SCREEN RES: {}'.format(SCREEN_RES)) # Rozdzielczość ekranu.
 
-# === Prepare stimulus here ===
-# Stworzenia bodźców
 
-fix_cross = visual.TextStim(win, text='+', height=100, color=conf['FIX_CROSS_COLOR'])
-cue_stim = visual.TextStim(win, text="", height=conf['STIM_SIZE'], color=conf['STIM_COLOR'])
-target_stim = visual.TextStim(win, text="", height=conf['STIM_SIZE'], color=conf['STIM_COLOR'])
-reminder_text = read_text_from_file(join('.', 'messages', 'przypomnienie.txt'))
-reminder_stim = visual.TextStim(win, text=reminder_text, pos=(0, -SCREEN_RES[1] // 2 + 100), height=20, color='black', wrapWidth=SCREEN_RES[0] - 100)
+# Stworzenie bodźców:
+
+fix_cross = visual.TextStim(win, text='+', height=100, color=conf['FIX_CROSS_COLOR']) # Wygląd puntku fiksacji.
+cue_stim = visual.TextStim(win, text="", height=conf['STIM_SIZE'], color=conf['STIM_COLOR']) # Wygląd wskazówki.
+target_stim = visual.TextStim(win, text="", height=conf['STIM_SIZE'], color=conf['STIM_COLOR']) # Wygląd bodźca docelowego.
+reminder_text = read_text_from_file(join('.', 'messages', 'przypomnienie.txt')) # Pobranie tekstu informacji z przypomnieniem.
+reminder_stim = visual.TextStim(win, text=reminder_text, pos=(0, -SCREEN_RES[1] // 2 + 100), height=20, color='black', wrapWidth=SCREEN_RES[0] - 100) # Wygląd informacji z przypomnieniem.
 
 
 
-# === Training ===
-show_info(win, join('.', 'messages', 'instrukcja.txt'))
-show_info(win, join('.', 'messages', 'komunikattrening.txt'))
-show_info(win, join('.', 'messages', 'start.txt'))
-previous_cue = None
-no_switch_count = 0
-for trial_no in range(conf['TRAINING_TRIALS']):
+
+
+# SESJA TRENINGOWA
+
+show_info(win, join('.', 'messages', 'instrukcja.txt')) # Wyświetlenie intrukcji.
+show_info(win, join('.', 'messages', 'komunikattrening.txt')) # Wyświetlenie komunikatu o rozpoczęciu sesji treningowej.
+show_info(win, join('.', 'messages', 'start.txt')) # Wyświetlenie informacji o tym, że badanie zaraz się rozpocznie.
+previous_cue = None # Wyzerowanie wskazówek.
+no_switch_count = 0 # Wyzerowanie liczby wyświetlenia się tej samej wskazówki bez zmian.
+for trial_no in range(conf['TRAINING_TRIALS']): 
+   """
+   Prezentowanie bodźca, zbieranie reakcję i zwracanie:
+   Klawisza naciśniętego przez uczestnika,
+   Czasu reakcji,
+   Informacji o zmianie wskazówki lub jej braku ("switch" lub "no-switch"),
+   Poprawności odpowiedzi,
+   Wskazówki (LITERA lub CYFRA).
+
+   Zapisywanie danych do listy z wynikami.
+
+   Wyświetlanie informacji zwrotnej dla badanego.
+   """
     key_pressed, rt, switch_status, correctness, cue = run_trial(win, conf, clock, target_stim, cue_stim, fix_cross, reminder_stim, previous_cue, no_switch_count, training=True)
     previous_cue = cue
     corr = correctness
     RESULTS.append([PART_ID, 'training', trial_no, cue, corr, switch_status, rt])
-    feedb = "Poprawnie" if corr else "Niepoprawnie"
-    feedb = visual.TextStim(win, text=feedb, height=50, color=conf['STIM_COLOR'])
-    for _ in range(int(frame_rate * 1)):  # 1 sekunda (zamiana core.wait(1) na pętlę)
+    feedb = "Poprawnie" if corr else "Niepoprawnie" # Informacja zwrotna.
+    feedb = visual.TextStim(win, text=feedb, height=50, color=conf['STIM_COLOR']) # Wygląd informacji zwrotnej. 
+    for _ in range(int(frame_rate * 1)):  # Wyświetlanie się informacji zwrotnej przez 1 sekundę.
         check_exit()
         feedb.draw()
         reminder_stim.draw()
         win.flip()
 
-    for _ in range(conf['MASK_TIME']): # maska jako pusty ekran pojawia się po feedbacku
+    for _ in range(conf['MASK_TIME']): # Wyświetlenie się maski po informacji zwrotnej.
         check_exit()
         reminder_stim.draw()
         win.flip()
 
-# === Experiment ===
-show_info(win, join('.', 'messages', 'komunikateksperyment.txt'))
-show_info(win, join('.', 'messages', 'start.txt'))
-trial_no = 0
+
+
+
+# SESJA EKSPERYMENTALNA
+
+show_info(win, join('.', 'messages', 'komunikateksperyment.txt'))  # Wyświetlenie komunikatu o rozpoczęciu sesji eksperymentalnej. 
+show_info(win, join('.', 'messages', 'start.txt')) # Wyświetlenie informacji o tym, że badanie zaraz się rozpocznie.
+trial_no = 0  # Wyzerowanie liczby interwałów.
 for block_no in range(conf['NO_BLOCKS']):
+   """
+   Prezentowanie bodźca, zbieranie reakcję i zwracanie:
+   Klawisza naciśniętego przez uczestnika,
+   Czasu reakcji,
+   Informacji o zmianie wskazówki lub jej braku ("switch" lub "no-switch"),
+   Poprawności odpowiedzi,
+   Wskazówki (LITERA lub CYFRA).
+
+   Zapisywanie danych do listy z wynikami.
+   """
     for _ in range(conf['TRIALS_IN_BLOCK']):
         key_pressed, rt, switch_status, corr, cue = run_trial(win, conf, clock, target_stim, cue_stim, fix_cross, reminder_stim, previous_cue, no_switch_count, training=False)
         previous_cue = "LITERA"
@@ -261,6 +288,9 @@ for block_no in range(conf['NO_BLOCKS']):
             reminder_stim.draw()
             win.flip()
     show_image(win, join('.', 'images', 'przerwa.jpg'), size=SCREEN_RES)
+
+
+
 
 # === Cleaning time ===
 save_beh_results()
