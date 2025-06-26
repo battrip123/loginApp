@@ -282,17 +282,17 @@ for block_no in range(conf['NO_BLOCKS']):
         key_pressed, rt, switch_status, corr, cue = run_trial(win, conf, clock, target_stim, cue_stim, fix_cross, reminder_stim, previous_cue, no_switch_count, training=False)
         previous_cue = "LITERA"
         RESULTS.append([PART_ID, block_no, trial_no, cue, corr, switch_status, rt])
-        trial_no += 1
-        for _ in range(int(frame_rate * 1)):  # przypomnienie jest widoczne przez 1s między próbami, aby znikało i nie rozpraszało badanego
+        trial_no += 1 # Liczenie sekwencji.
+        for _ in range(int(frame_rate * 1)):  # Przypomnienie o przypisaniu klawiszy jest widoczne przez 1s między próbami, aby znikało i nie rozpraszało badanego.
             check_exit()
             reminder_stim.draw()
             win.flip()
-    show_image(win, join('.', 'images', 'przerwa.jpg'), size=SCREEN_RES)
+    show_image(win, join('.', 'images', 'przerwa.jpg'), size=SCREEN_RES) # Wyświetlanie okna przerwy.
 
 
 
 
-# === Cleaning time ===
+# Zapisywanie danych, zakończenie i zamykanie wszystkiego.
 save_beh_results()
 logging.flush()
 show_info(win, join('.', 'messages', 'end.txt'))
