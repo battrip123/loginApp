@@ -229,25 +229,25 @@ show_info(win, join('.', 'messages', 'komunikattrening.txt')) # Wyświetlenie ko
 show_info(win, join('.', 'messages', 'start.txt')) # Wyświetlenie informacji o tym, że badanie zaraz się rozpocznie.
 previous_cue = None # Wyzerowanie wskazówek.
 no_switch_count = 0 # Wyzerowanie liczby wyświetlenia się tej samej wskazówki bez zmian.
-for trial_no in range(conf['TRAINING_TRIALS']): 
-   """
-   Prezentowanie bodźca, zbieranie reakcję i zwracanie:
-   Klawisza naciśniętego przez uczestnika,
-   Czasu reakcji,
-   Informacji o zmianie wskazówki lub jej braku ("switch" lub "no-switch"),
-   Poprawności odpowiedzi,
-   Wskazówki (LITERA lub CYFRA).
+for trial_no in range(conf['TRAINING_TRIALS']):
+    """
+    Prezentowanie bodźca, zbieranie reakcję i zwracanie:
+    Klawisza naciśniętego przez uczestnika,
+    Czasu reakcji,
+    Informacji o zmianie wskazówki lub jej braku ("switch" lub "no-switch"),
+    Poprawności odpowiedzi,
+    Wskazówki (LITERA lub CYFRA).
 
-   Zapisywanie danych do listy z wynikami.
+    Zapisywanie danych do listy z wynikami.
 
-   Wyświetlanie informacji zwrotnej dla badanego.
-   """
+    Wyświetlanie informacji zwrotnej dla badanego.
+    """
     key_pressed, rt, switch_status, correctness, cue = run_trial(win, conf, clock, target_stim, cue_stim, fix_cross, reminder_stim, previous_cue, no_switch_count, training=True)
     previous_cue = cue
     corr = correctness
     RESULTS.append([PART_ID, 'training', trial_no, cue, corr, switch_status, rt])
     feedb = "Poprawnie" if corr else "Niepoprawnie" # Informacja zwrotna.
-    feedb = visual.TextStim(win, text=feedb, height=50, color=conf['STIM_COLOR']) # Wygląd informacji zwrotnej. 
+    feedb = visual.TextStim(win, text=feedb, height=50, color=conf['STIM_COLOR']) # Wygląd informacji zwrotnej.
     for _ in range(int(frame_rate * 1)):  # Wyświetlanie się informacji zwrotnej przez 1 sekundę.
         check_exit()
         feedb.draw()
@@ -264,20 +264,20 @@ for trial_no in range(conf['TRAINING_TRIALS']):
 
 # SESJA EKSPERYMENTALNA
 
-show_info(win, join('.', 'messages', 'komunikateksperyment.txt'))  # Wyświetlenie komunikatu o rozpoczęciu sesji eksperymentalnej. 
+show_info(win, join('.', 'messages', 'komunikateksperyment.txt'))  # Wyświetlenie komunikatu o rozpoczęciu sesji eksperymentalnej.
 show_info(win, join('.', 'messages', 'start.txt')) # Wyświetlenie informacji o tym, że badanie zaraz się rozpocznie.
 trial_no = 0  # Wyzerowanie liczby interwałów.
 for block_no in range(conf['NO_BLOCKS']):
-   """
-   Prezentowanie bodźca, zbieranie reakcję i zwracanie:
-   Klawisza naciśniętego przez uczestnika,
-   Czasu reakcji,
-   Informacji o zmianie wskazówki lub jej braku ("switch" lub "no-switch"),
-   Poprawności odpowiedzi,
-   Wskazówki (LITERA lub CYFRA).
+    """
+    Prezentowanie bodźca, zbieranie reakcję i zwracanie:
+    Klawisza naciśniętego przez uczestnika,
+    Czasu reakcji,
+    Informacji o zmianie wskazówki lub jej braku ("switch" lub "no-switch"),
+    Poprawności odpowiedzi,
+    Wskazówki (LITERA lub CYFRA).
 
-   Zapisywanie danych do listy z wynikami.
-   """
+    Zapisywanie danych do listy z wynikami.
+    """
     for _ in range(conf['TRIALS_IN_BLOCK']):
         key_pressed, rt, switch_status, corr, cue = run_trial(win, conf, clock, target_stim, cue_stim, fix_cross, reminder_stim, previous_cue, no_switch_count, training=False)
         previous_cue = "LITERA"
