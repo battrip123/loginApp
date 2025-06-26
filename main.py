@@ -124,7 +124,10 @@ def run_trial(win, conf, clock, target_stim, instruction_stim, fix_cross, remind
                 instruction = previous_instruction
                 no_switch_count += 1
 
-    switch_status = "no-switch" if instruction == previous_instruction or instruction == None else "switch"
+   if instruction == previous_instruction or previous_instruction == None:
+        switch_status = "no-switch"
+   else:
+        switch_status = "switch"
 
     litera = random.choice(conf['STIM_LETTERS'])
     cyfra = random.choice(conf['STIM_NUMBERS'])
@@ -234,7 +237,7 @@ for trial_no in range(conf['TRAINING_TRIALS']):
     corr = correctness
     RESULTS.append([PART_ID, 'training', trial_no, instruction, corr, switch_status, rt])
     feedb = "Poprawnie" if corr else "Niepoprawnie"
-    feedb = visual.TextStim(win, text=feedb, height=50, color=conf['CUE_COLOR'])
+    feedb = visual.TextStim(win, text=feedb, height=50, color=conf['STIM_COLOR'])
     for _ in range(int(frame_rate * 1)):  # 1 sekunda (zamiana core.wait(1) na pętlę)
         check_exit()
         feedb.draw()
