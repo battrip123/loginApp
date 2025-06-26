@@ -287,7 +287,7 @@ for block_no in range(conf['NO_BLOCKS']):
             check_exit()
             reminder_stim.draw()
             win.flip()
-    show_image(win, join('.', 'images', 'przerwa.jpg'), size=SCREEN_RES) # Wyświetlanie okna przerwy.
+    show_image(win, join('.', 'images', 'Przerwa.jpg'), size=SCREEN_RES) # Wyświetlanie okna przerwy.
 
 
 
