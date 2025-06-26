@@ -183,21 +183,21 @@ def run_trial(win, conf, clock, target_stim, cue_stim, fix_cross, reminder_stim,
 
 
 
-# GLOBAL VARIABLES
+# Ustawienia zmiennych globalnych:
 
-RESULTS = list()  # list in which data will be collected
-RESULTS.append(['PART_ID', 'Block', 'Trial', 'Cue', 'Correctness', 'Switch_status', 'RT'])  # Results header
-PART_ID = ''
-SCREEN_RES = []
+RESULTS = list()  # Lista, w której będą zbierane dane.
+RESULTS.append(['PART_ID', 'Block', 'Trial', 'Cue', 'Correctness', 'Switch_status', 'RT'])  # Nadanie tytułów nagłówkom kolumn.
+PART_ID = '' # ID badanego.
+SCREEN_RES = [] # Rozdzielczość ekranu
 
-# === Dialog popup ===
-info: Dict = {'ID': '', 'Sex': ['M', "F"], 'Age': ''}
+# Storzenie okna do zbierania danych badanego.
+info: Dict = {'ID': '', 'Sex': ['M', "F"], 'Age': ''} # Słownik, który zapisuje ID, płeć i wiek.
 dict_dlg = gui.DlgFromDict(dictionary=info, title='Experiment title, fill by your name!')
 if not dict_dlg.OK:
     abort_with_error('Info dialog terminated.')
 
-clock = core.Clock()
-# load config, all params should be there
+clock = core.Clock() # Ustawienie zegara.
+
 conf: Dict = yaml.load(open('config.yaml', encoding='utf-8'), Loader=yaml.SafeLoader)
 frame_rate: int = conf['FRAME_RATE']
 SCREEN_RES: List[int] = conf['SCREEN_RES']
