@@ -12,11 +12,11 @@ from psychopy import visual, event, logging, gui, core # Do ładowania potrzebny
 @atexit.register
 
 # Dzięki atexit ta funkcja zawsze zostanie wykonana:
-# Wyniki badanego będą z awsze zapisane, nawet jak coś przerwie działanie kodu.
+# Wyniki badanego będą zawsze zapisane, nawet jak coś przerwie działanie kodu.
 
 def save_beh_results() -> None:
    """
-   Tworzenie w pliku results notatkę do zapisania danych badanego.
+   Tworzenie w folderze results pliku csv do zapisania danych badanego.
    """
    file_name = PART_ID + '_' + str(random.choice(range(100, 1000))) + '_beh.csv' # Nadawanie nazwy notatce z wynikami badanego.
    with open(join('results', file_name), 'w', encoding='utf-8') as beh_file: # Zaspisywanie danych w pliku.
@@ -28,7 +28,7 @@ def save_beh_results() -> None:
 
 def show_image(win: visual.Window, file_name: str, size: List[int], key: str = 'f7') -> None:
     """
-    Pokazywanie tesktu w formie obrazu.
+    Wyświetlanie obrazu.
     Zakończenie procedury jeśli zostanie naciśnięty klawisz "f7".
     Przejście dalej jeśli zostanie naciśnięty "enter" lub "spacja".
     """
@@ -75,9 +75,9 @@ def check_exit(key: str = 'f7') -> None:
 
 def show_info(win: visual.Window, file_name: str, insert: str = '') -> None:
     """
-    Wyświetlanie intstrukcji na ekranie.
-    Formatowanie instrukcji.
-    Wciśnięcie klawisza "spacja" lub "enter" w celu prześcia dalej.
+    Wyświetlanie komunikatu z pliku tekstowego.
+    Formatowanie komunikatu.
+    Wciśnięcie klawisza "spacja" lub "enter" w celu przejścia dalej.
     """
     msg = read_text_from_file(file_name, insert=insert)
     msg = visual.TextStim(win, color='black', text=msg, height=20, wrapWidth=1000)
@@ -95,19 +95,13 @@ def abort_with_error(err: str) -> None:
     Uruchamiane po wciśnięciu klawisza "f7".
     """
     logging.critical(err)
-    win.close()  # zamyka okno
+    win.close()
     raise SystemExit(err)
 
 
 def run_trial(win, conf, clock, target_stim, cue_stim, fix_cross, reminder_stim, previous_cue, no_switch_count, training=False):
     """
     Przebieg pojedynczej sekwencji
-    Prepare and present single trial of procedure.
-    Input (params) should consist all data need for presenting stimuli.
-    If some stimulus (eg. text, label, button) will be presented across many trials.
-    Should be prepared outside this function and passed for .draw() or .setAutoDraw().
-    Returns:
-        All behavioral data (reaction time, answer, etc. should be returned from this function).
     """
 
     if previous_cue is None: # Losowanie pierwszej wskazówki - LITERA lub CYFRA.
@@ -166,7 +160,7 @@ def run_trial(win, conf, clock, target_stim, cue_stim, fix_cross, reminder_stim,
             win.flip()
 
     if reaction:
-        key_pressed, rt = reaction[0]  # 0 to krotka: (pierwszy przycisk który został wciśnięty, czas wciśnięcia).
+        key_pressed, rt = reaction[0]
     else:  # Po upłynięciu czasu na reakcję na bodziec zapisujemy czas reakcji jako -1, aby wyróżniał się z rzeczywistych czasów reakcji.
         key_pressed = 'no_key'
         rt = -1
@@ -191,8 +185,8 @@ PART_ID = '' # ID badanego.
 SCREEN_RES = [] # Rozdzielczość ekranu
 
 # Storzenie okna do zbierania danych badanego.
-info: Dict = {'ID': '', 'Sex': ['M', "F"], 'Age': ''} # Słownik, który zapisuje ID, płeć i wiek.
-dict_dlg = gui.DlgFromDict(dictionary=info, title='Experiment title, fill by your name!')
+info: Dict = {'ID': '', 'Płeć': ['M', "K","Inna"], 'Wiek': ''} # Słownik, który zapisuje ID, płeć i wiek.
+dict_dlg = gui.DlgFromDict(dictionary=info, title='Zadanie task-switch, wypełnij swoje dane!')
 if not dict_dlg.OK:
     abort_with_error('Info dialog terminated.')
 
@@ -204,7 +198,7 @@ SCREEN_RES: List[int] = conf['SCREEN_RES'] # Ustawienie rodzielczości ekranu.
 win = visual.Window(SCREEN_RES, monitor='testMonitor', units='pix', color=conf['BACKGROUND_COLOR']) # Ustawienie danych dotyczących ekranu i tła.
 event.Mouse(visible=False, newPos=None, win=win)  # Ukrycie kursora myszy w oknie ekspreymentu.
 
-PART_ID = info['ID'] + info['Sex'] + info['Age'] # Stworzenie unikalnego ID badanego.
+PART_ID = info['ID'] + info['Płeć'] + info['Wiek'] # Stworzenie unikalnego ID badanego.
 logging.LogFile(join('results', f'{PART_ID}.log'), level=logging.INFO)  # Zapisywanie błędów z procedury.
 logging.info('FRAME RATE: {}'.format(frame_rate)) # Liczba klatek na sekundę.
 logging.info('SCREEN RES: {}'.format(SCREEN_RES)) # Rozdzielczość ekranu.
@@ -229,6 +223,7 @@ show_info(win, join('.', 'messages', 'komunikattrening.txt')) # Wyświetlenie ko
 show_info(win, join('.', 'messages', 'start.txt')) # Wyświetlenie informacji o tym, że badanie zaraz się rozpocznie.
 previous_cue = None # Wyzerowanie wskazówek.
 no_switch_count = 0 # Wyzerowanie liczby wyświetlenia się tej samej wskazówki bez zmian.
+
 for trial_no in range(conf['TRAINING_TRIALS']):
     """
     Prezentowanie bodźca, zbieranie reakcję i zwracanie:
@@ -280,7 +275,6 @@ for block_no in range(conf['NO_BLOCKS']):
     """
     for _ in range(conf['TRIALS_IN_BLOCK']):
         key_pressed, rt, switch_status, corr, cue = run_trial(win, conf, clock, target_stim, cue_stim, fix_cross, reminder_stim, previous_cue, no_switch_count, training=False)
-        previous_cue = "LITERA"
         RESULTS.append([PART_ID, block_no, trial_no, cue, corr, switch_status, rt])
         trial_no += 1 # Liczenie sekwencji.
         for _ in range(int(frame_rate * 1)):  # Przypomnienie o przypisaniu klawiszy jest widoczne przez 1s między próbami, aby znikało i nie rozpraszało badanego.
