@@ -243,7 +243,7 @@ for trial_no in range(conf['TRAINING_TRIALS']):
     RESULTS.append([PART_ID, 'training', trial_no, cue, corr, switch_status, rt])
     feedb = "Poprawnie" if corr else "Niepoprawnie" # Informacja zwrotna.
     feedb = visual.TextStim(win, text=feedb, height=50, color=conf['STIM_COLOR']) # Wygląd informacji zwrotnej.
-    for _ in range(int(frame_rate * 1)):  # Wyświetlanie się informacji zwrotnej przez 1 sekundę.
+    for _ in range(conf['FEEDBACK_TIME']):  # Wyświetlanie się informacji zwrotnej przez 1 sekundę.
         check_exit()
         feedb.draw()
         reminder_stim.draw()
@@ -277,11 +277,9 @@ for block_no in range(conf['NO_BLOCKS']):
         key_pressed, rt, switch_status, corr, cue = run_trial(win, conf, clock, target_stim, cue_stim, fix_cross, reminder_stim, previous_cue, no_switch_count, training=False)
         RESULTS.append([PART_ID, block_no, trial_no, cue, corr, switch_status, rt])
         trial_no += 1 # Liczenie sekwencji.
-        for _ in range(int(frame_rate * 1)):  # Przypomnienie o przypisaniu klawiszy jest widoczne przez 1s między próbami, aby znikało i nie rozpraszało badanego.
-            check_exit()
-            reminder_stim.draw()
-            win.flip()
+
     show_image(win, join('.', 'images', 'Przerwa.jpg'), size=SCREEN_RES) # Wyświetlanie okna przerwy.
+    show_info(win, join('.', 'messages', 'start.txt'))  # Wyświetlenie informacji o tym, że badanie zaraz będzie kontynuowane.
 
 
 
