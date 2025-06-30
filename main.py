@@ -107,17 +107,17 @@ def run_trial(win, conf, clock, target_stim, cue_stim, fix_cross, reminder_stim,
     if previous_cue is None: # Losowanie pierwszej wskazówki - LITERA lub CYFRA.
         cue = random.choice(conf['STIM_CUE'])
         no_switch_count = 0
+        switch_status = "no-switch"
     else:
-        if no_switch_count >= 5: # Zmiana wskazówki, jeśli nie było zmiany przez ostatnie 5 sekwencji.
+        should_switch = (no_switch_count >= 5) or (random.random() < 0.25) # determinuje czy wskazówka powinna się zmienić
+        if should_switch:
             cue = "CYFRA" if previous_cue == "LITERA" else "LITERA"
             no_switch_count = 0
+            switch_status = "switch"
         else:
-            if random.random() < 0.25: # Prawdopodobieństwo zmienienia wskazówki.
-                cue = "CYFRA" if previous_cue == "LITERA" else "LITERA"
-                no_switch_count = 0
-            else:
-                cue = previous_cue
-                no_switch_count += 1 # Liczenie ile razy powtarzała się dana wskazówka.
+            cue = previous_cue
+            no_switch_count += 1
+            switch_status = "no-switch"
 
     if cue == previous_cue or previous_cue == None: # Zebranie informacji czy zadanie było "switch", czy "no-switch".
         switch_status = "no-switch"
@@ -221,6 +221,7 @@ reminder_stim = visual.TextStim(win, text=reminder_text, pos=(0, -SCREEN_RES[1] 
 show_info(win, join('.', 'messages', 'instrukcja.txt')) # Wyświetlenie intrukcji.
 show_info(win, join('.', 'messages', 'komunikattrening.txt')) # Wyświetlenie komunikatu o rozpoczęciu sesji treningowej.
 show_info(win, join('.', 'messages', 'start.txt')) # Wyświetlenie informacji o tym, że badanie zaraz się rozpocznie.
+
 previous_cue = None # Wyzerowanie wskazówek.
 no_switch_count = 0 # Wyzerowanie liczby wyświetlenia się tej samej wskazówki bez zmian.
 
