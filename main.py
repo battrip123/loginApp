@@ -119,11 +119,6 @@ def run_trial(win, conf, clock, target_stim, cue_stim, fix_cross, reminder_stim,
             no_switch_count += 1
             switch_status = "no-switch"
 
-    if cue == previous_cue or previous_cue == None: # Zebranie informacji czy zadanie było "switch", czy "no-switch".
-        switch_status = "no-switch"
-    else:
-        switch_status = "switch"
-
     litera = random.choice(conf['STIM_LETTERS']) # Wybranie ze zbioru liter losowej litery do bodźca docelowego.
     cyfra = random.choice(conf['STIM_NUMBERS']) # Wybranie ze zbioru cyfr losowej cyfry do bodźca docelowego.
     cue_stim.text = cue # Przechowywanie tekstu wskazówki.
@@ -238,9 +233,8 @@ for trial_no in range(conf['TRAINING_TRIALS']):
 
     Wyświetlanie informacji zwrotnej dla badanego.
     """
-    key_pressed, rt, switch_status, correctness, cue = run_trial(win, conf, clock, target_stim, cue_stim, fix_cross, reminder_stim, previous_cue, no_switch_count, training=True)
+    key_pressed, rt, switch_status, corr, cue = run_trial(win, conf, clock, target_stim, cue_stim, fix_cross, reminder_stim, previous_cue, no_switch_count, training=True)
     previous_cue = cue
-    corr = correctness
     RESULTS.append([PART_ID, 'training', trial_no, cue, corr, switch_status, rt])
     feedb = "Poprawnie" if corr else "Niepoprawnie" # Informacja zwrotna.
     feedb = visual.TextStim(win, text=feedb, height=50, color=conf['STIM_COLOR']) # Wygląd informacji zwrotnej.
@@ -254,8 +248,6 @@ for trial_no in range(conf['TRAINING_TRIALS']):
         check_exit()
         reminder_stim.draw()
         win.flip()
-
-
 
 
 # SESJA EKSPERYMENTALNA
@@ -276,6 +268,7 @@ for block_no in range(conf['NO_BLOCKS']):
     """
     for _ in range(conf['TRIALS_IN_BLOCK']):
         key_pressed, rt, switch_status, corr, cue = run_trial(win, conf, clock, target_stim, cue_stim, fix_cross, reminder_stim, previous_cue, no_switch_count, training=False)
+        previous_cue = cue
         RESULTS.append([PART_ID, block_no, trial_no, cue, corr, switch_status, rt])
         trial_no += 1 # Liczenie sekwencji.
 
